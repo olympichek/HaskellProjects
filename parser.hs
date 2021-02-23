@@ -112,15 +112,6 @@ eval (e1 :-: e2) = eval e1 - eval e2
 eval (e1 :*: e2) = eval e1 * eval e2
 eval (e1 :/: e2) = eval e1 / eval e2
 
-splitByBrackets' :: [Token] -> ([Token], [Token], [Token])
-splitByBrackets' ts = (lt, ct, rt) where
-    t1 = splitOn [LeftBrace] ts
-    t2 = concat $ tail t1
-    t3 = splitOn [RightBrace] t2
-    lt = head t1
-    ct = concat $ init t3
-    rt = last t3
-
 splitByBrackets :: [Token] -> [[Token]]
 splitByBrackets [] = [[]]
 splitByBrackets ts = helper ts 0 [[]]  where
