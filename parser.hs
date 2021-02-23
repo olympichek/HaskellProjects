@@ -144,7 +144,7 @@ compute ts = case checkBrackets ts of
     nts = helper $ splitByBrackets ts
     helper [p1] = Right p1
     helper (p1:p2:ps) = do
-        r <- compute p2
+        r  <- compute p2
         rs <- helper ps
         return $ p1 ++ [Number r] ++ rs
 
