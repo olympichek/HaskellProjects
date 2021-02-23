@@ -1,8 +1,10 @@
 import System.IO       ( hFlush, stdout )
 import Text.Read       ( readMaybe )
 import Data.List.Split ( splitOn )
-import Control.Monad   ( (<=<), (>=>) )
 import Control.Arrow   ( (>>>) )
+import Control.Monad   ( (<=<), (>=>) )
+import Control.Monad.State
+    ( modify, evalState, MonadState(get, state), State )
  
 data Token = Number Double
     | Plus      | Minus
@@ -110,21 +112,28 @@ eval (Val n) = n
 eval (e1 :+: e2) = eval e1 + eval e2
 eval (e1 :-: e2) = eval e1 - eval e2
 eval (e1 :*: e2) = eval e1 * eval e2
-eval (e1 :/: e2) = eval e1 / eval e2
+eval (e1 :/: e2) = eval e1 / eval e2  
 
 splitByBrackets :: [Token] -> [[Token]]
 splitByBrackets [] = [[]]
-splitByBrackets ts = helper ts 0 [[]]  where
-    helper []     _ res = res
-    helper (t:ts) n res = case t of
-        LeftBrace  -> if n == 0
-            then helper ts (n+1) $ res ++ [[]]
-            else helper ts (n+1) $ res +++ [t]
-        RightBrace -> if n == 1
-            then helper ts (n-1) $ res ++ [[]]
-            else helper ts (n-1) $ res +++ [t]
-        _          -> helper ts n $ res +++ [t]
-    xs +++ ys = init xs ++ [last xs ++ ys]
+splitByBrackets ts = evalState (helper ts) 0 where
+    x -: xs = (x : head xs) : tail xs 
+    helper [] = state $ const ([[]], 0)
+    helper (LeftBrace:ts) = do
+        n <- get
+        modify (+1)
+        res <- helper ts
+        if n == 0 then return $ []:res
+        else return $ LeftBrace -: res
+    helper (RightBrace:ts) = do
+        n <- get
+        modify $ \s -> s - 1
+        res <- helper ts
+        if n == 1 then return $ []:res
+        else return $ RightBrace -: res
+    helper (t:ts) = do
+        res <- helper ts
+        return $ t -: res
 
 compute :: [Token] -> Either Error Double
 compute ts = case checkBrackets ts of
