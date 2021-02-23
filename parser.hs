@@ -118,7 +118,7 @@ splitByBrackets :: [Token] -> [[Token]]
 splitByBrackets [] = [[]]
 splitByBrackets ts = evalState (helper ts) 0 where
     x -: xs = (x : head xs) : tail xs 
-    helper [] = state $ const ([[]], 0)
+    helper [] = state $ (,) [[]]
     helper (LeftBrace:ts) = do
         n <- get
         modify (+1)
