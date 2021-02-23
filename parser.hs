@@ -121,13 +121,13 @@ splitByBrackets ts = evalState (helper ts) 0 where
     helper [] = state $ (,) [[]]
     helper (LeftBrace:ts) = do
         n <- get
-        modify (+1)
+        modify succ
         res <- helper ts
         if n == 0 then return $ []:res
         else return $ LeftBrace -: res
     helper (RightBrace:ts) = do
         n <- get
-        modify $ \s -> s - 1
+        modify pred
         res <- helper ts
         if n == 1 then return $ []:res
         else return $ RightBrace -: res
